@@ -25,7 +25,7 @@ echo "📂 Target directory: $MEDIA_DIR"
 echo ""
 
 # --- Download the file ---
-FILENAME=$(basename "$URL" | sed 's/?.*//')  # strip query params
+FILENAME=$(basename "$URL" | sed 's/?.*//')
 FILEPATH="$MEDIA_DIR/$FILENAME"
 
 wget -c --progress=bar:force -O "$FILEPATH" "$URL"
@@ -77,17 +77,24 @@ ls -lhR "$MEDIA_DIR"
 echo ""
 
 # --- Start the media server ---
-cd "$(dirname "$0")"
 echo "🚀 Starting media server on port 8090..."
-docker compose up -d
+
+# Kill any existing server on port 8090
+fuser -k 8090/tcp 2>/dev/null || true
+
+cd "$MEDIA_DIR"
+nohup python3 -m http.server 8090 --bind 0.0.0.0 > /dev/null 2>&1 &
+SERVER_PID=$!
 
 echo ""
 echo "============================================"
-echo "  ✅ MEDIA SERVER IS RUNNING!"
+echo "  ✅ MEDIA SERVER IS RUNNING! (PID: $SERVER_PID)"
 echo "============================================"
 echo ""
-echo "  Open VLC → Open Network Stream → Enter:"
+echo "  Open in phone browser to browse files:"
 echo "  http://<YOUR-HETZNER-IP>:8090/"
 echo ""
-echo "  Browse files and play directly in VLC!"
+echo "  Copy a file link → Open in VLC → Stream!"
+echo ""
+echo "  To stop: kill $SERVER_PID"
 echo "============================================"
